@@ -181,3 +181,6 @@ INTERNAL_IPS = ['127.0.0.1']
 AUTH_USER_MODEL = 'user.CustomUser'
 
 LOGIN_URL = '/login/'
+
+# 슬래시 추가 옵션 비활성화
+APPEND_SLASH = False
