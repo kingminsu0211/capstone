@@ -21,8 +21,3 @@ class Diagnosis(models.Model):
     call_details = models.TextField(null=True, blank=True)
     diagnosis_date = models.DateTimeField(auto_now_add=True)
     suspicion_percentage = models.FloatField(null=True,blank=True)
-
-    def diagnose(self, audio_transcript=None, call_details=None):
-
-        self.suspicion_percentage = 50
-        self.save()
