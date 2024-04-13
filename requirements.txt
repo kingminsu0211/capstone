@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 asgiref==3.7.2
 attrs==23.2.0
 backports.zoneinfo==0.2.1
@@ -86,3 +87,93 @@ uritemplate==4.1.1
 urllib3==2.1.0
 virtualenv==20.25.0
 zipp==3.18.1
+=======
+asgiref==3.7.2
+attrs==23.2.0
+backports.zoneinfo==0.2.1
+backup==0.0.1
+bert==2.2.0
+certifi==2023.11.17
+cffi @ file:///C:/b/abs_924gv1kxzj/croot/cffi_1700254355075/work
+charset-normalizer==3.3.2
+cmake==3.29.0.1
+colorama==0.4.6
+coreapi==2.3.3
+coreschema==0.0.4
+cryptography==41.0.7
+Cython==3.0.10
+defusedxml==0.7.1
+distlib==0.3.7
+Django==4.2.11
+django-allauth==0.59.0
+django-debug-toolbar==4.2.0
+django-filter==23.5
+django-rest-auth==0.9.5
+django-rest-swagger==2.2.0
+djangorestframework==3.14.0
+djangorestframework-simplejwt==5.3.1
+drf-spectacular==0.27.1
+drf-yasg==1.21.7
+erlastic==2.0.0
+filelock==3.13.1
+fsspec==2024.3.1
+glove-python-binary==0.2.0
+huggingface-hub==0.22.2
+idna==3.6
+importlib_resources==6.4.0
+inflection==0.5.1
+itypes==1.2.0
+Jinja2==3.1.2
+joblib==1.3.2
+JPype1 @ file:///C:/b/abs_1f92quvzzn/croot/jpype1_1674515186799/work
+jsonschema==4.21.1
+jsonschema-specifications==2023.12.1
+konlpy==0.6.0
+lxml==5.1.0
+MarkupSafe==2.1.3
+mpmath==1.3.0
+networkx==3.1
+numpy==1.24.4
+oauthlib==3.2.2
+openapi-codec==1.3.2
+packaging @ file:///C:/b/abs_cc1h2xfosn/croot/packaging_1710807447479/work
+pillow==10.3.0
+pkgutil_resolve_name==1.3.10
+platformdirs==4.1.0
+pybind11==2.12.0
+pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
+PyJWT==1.7.1
+PyMySQL==1.1.0
+pyproject-toml-api==0.1.0
+python3-openid==3.2.0
+pytz==2023.3.post1
+PyYAML==6.0.1
+referencing==0.34.0
+regex==2023.12.25
+requests==2.31.0
+requests-oauthlib==1.3.1
+rpds-py==0.18.0
+safetensors==0.4.2
+scikit-learn==1.3.2
+scipy==1.10.1
+semantic-version==2.10.0
+sentence-transformers==2.6.1
+setuptools-rust==1.8.1
+simplejson==3.19.2
+six==1.16.0
+spicy==0.16.0
+sqlparse @ file:///C:/b/abs_88361ub_qu/croot/sqlparse_1690904577514/work
+sympy==1.12
+threadpoolctl==3.4.0
+tokenizers==0.15.2
+tomli==2.0.1
+torch==2.2.2
+tqdm==4.66.2
+transformers==4.39.3
+typing_extensions==4.9.0
+tzdata @ file:///croot/python-tzdata_1690578112552/work
+uritemplate==4.1.1
+urllib3==2.1.0
+virtualenv==20.25.0
+zipp==3.18.1
+>>>>>>> 4bfea409aeee9a60cd0d6a9ffd73c3cf652acf57
