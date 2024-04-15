@@ -1,3 +1,3 @@
-"* -text" 
-path/to/large/file filter=lfs diff=lfs merge=lfs -text
+"* -text"
 chatbot_5/model.safetensors filter=lfs diff=lfs merge=lfs -text
+chatbot_5 filter=lfs diff=lfs merge=lfs -text
