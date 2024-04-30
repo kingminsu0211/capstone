@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-r=8f9(1t+f^xoy+z633*u_#tu+c&k*74w76px1^6)6+0dh2v9g'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
 
@@ -92,7 +92,7 @@ DATABASES = {
         'NAME': 'capstone',
         'USER' : 'root',
         'PASSWORD' : '1234',
-        'HOST' : 'ec2-54-180-213-170.ap-northeast-2.compute.amazonaws.com',
+        'HOST' : 'ec2-13-209-90-71.ap-northeast-2.compute.amazonaws.com',
         # 'HOST' : '127.0.0.1',
         'PORT' : '3306'
     }
