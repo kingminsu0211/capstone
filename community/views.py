@@ -89,9 +89,11 @@ def create_post(request):
         user = request.user
         user_nickname = user.nickname
         # Create a new Post object
-        post =Post.objects.create(title=title, content=content, writer=user, report_number=report_number)
+        post =Post.objects.create(title=title, content=content,
+                                  writer=user,
+                                  report_number=report_number)
 
-        return Response({'message': '게시물이 성공적으로 작성되었습니다.'}, status=status.HTTP_201_CREATED)
+        return Response({'message': '게시물이 성공적으로 작성되었습니다.','유저 닉네임': user_nickname}, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -149,7 +151,8 @@ def comment_write(request, post_id):
         # nickname = serializer.validated_data.get('nickname')
 
         # 사용자 및 게시물 인스턴스를 가져옵니다
-        user = get_object_or_404(CustomUser, id=user_id.id)
+        # user = get_object_or_404(CustomUser, id=user_id.id)
+        user = request.user
         user_nickname = user.nickname
         # 새로운 댓글 객체를 생성합니다
         comment = Comment.objects.create(
@@ -172,16 +175,18 @@ def comment_write(request, post_id):
 @api_view(['PUT'])
 def comment_update(request, comment_id):
     comment = get_object_or_404(Comment, id=comment_id)
+
+    # 현재 사용자와 댓글의 작성자가 같은지 확인
+    if request.user.id != comment.user.id:
+        return Response({'message': '댓글을 수정할 수 있는 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
+
     serializer = CommentSerializer(comment, data=request.data)
 
     if serializer.is_valid():
         serializer.save()
-        user = request.user
-        user_nickname = user.nickname
         return Response({'message': '댓글이 성공적으로 수정되었습니다.'}, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 # 번호 검색
 @swagger_auto_schema(
     operation_description="번호 검색"
@@ -228,7 +233,7 @@ def report(request):
             report_number= report_number,
             report_type=report_type,
             report_content=report_content,
-            reporter = reporter,
+            reporter = user,
             voice_phishing_record_id=voice_phishing_record_id
         )
 
@@ -245,6 +250,11 @@ def report(request):
 @api_view(['PUT'])
 def report_update(request, report_id):
     report = get_object_or_404(Report, id=report_id)
+
+    # 현재 사용자와 리포트의 작성자가 같은지 확인
+    if request.user.id != report.reporter.id:
+        return Response({'message': '게시글을 수정할 수 있는 권한이 없습니다.'}, status=status.HTTP_403_FORBIDDEN)
+
     serializer = ReportSerializer(report, data=request.data)
 
     if serializer.is_valid():
@@ -252,7 +262,6 @@ def report_update(request, report_id):
         return Response({'message': '신고가 성공적으로 수정되었습니다.'}, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 #내 신고내역
 class MyReportListView(generics.ListAPIView):
     serializer_class = ReportSerializer
@@ -330,6 +339,8 @@ def update_ask(request, post_id):
 
     if serializer.is_valid():
         serializer.save()
+        user = request.user
+        user_nickname = user.nickname
         return Response({'message': '게시물이 성공적으로 수정되었습니다.'}, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -348,7 +359,8 @@ def ask_comment_write(request, post_id):
         user_id = serializer.validated_data.get('user')
 
         # 사용자 및 게시물 인스턴스를 가져옵니다
-        user = get_object_or_404(CustomUser, id=user_id.id)
+        # user = get_object_or_404(CustomUser, id=user_id.id)
+        user = request.user
         post = get_object_or_404(Ask, id=post_id)
 
         # 관리자인 경우에만 댓글 객체를 생성합니다
