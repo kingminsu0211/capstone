@@ -186,3 +186,11 @@ INTERNAL_IPS = ['127.0.0.1']
 AUTH_USER_MODEL = 'user.CustomUser'
 
 LOGIN_URL = '/login/'
+
+# 로그인 성공 시 자동으로 이동할 URL
+LOGIN_REDIRECT_URL = '/'
+
+# 로그아웃 성공 시 자동으로 이동할 URL
+LOGOUT_REDIRECT_URL = '/'
+
+CSRF_COOKIE_SECURE = False

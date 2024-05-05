@@ -19,6 +19,7 @@ from drf_yasg import openapi
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
+from django.views.decorators.csrf import csrf_exempt
 
 class CheckAccountViewset(viewsets.ModelViewSet):
     queryset = CustomUser.objects.all()
@@ -56,20 +57,21 @@ def signup(request: HttpRequest):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # 로그인 API 문서화
-@swagger_auto_schema(method='get', manual_parameters=[
+@swagger_auto_schema(method='post', manual_parameters=[
     openapi.Parameter('username', openapi.IN_QUERY, description="사용자 ID", type=openapi.TYPE_STRING),
     openapi.Parameter('password', openapi.IN_QUERY, description="비밀번호", type=openapi.TYPE_STRING),
 ])
+@api_view(['POST'])
 @permission_classes([AllowAny])
-@api_view(['GET'])
+# @csrf_exempt
 def user_login(request):
-    username = request.data.get('username')
-    password = request.data.get('password')
+    username = request.query_params.get('username')
+    password = request.query_params.get('password')
 
     try:
-        user = authenticate(request._request, username=username, password=password)
+        user = authenticate(request, username=username, password=password)
         if user is not None:
-            auth_login(request._request, user)
+            auth_login(request, user)
             return Response({'message': '로그인 성공'}, status=status.HTTP_200_OK)
         else:
             return Response({'error': '아이디 또는 비밀번호가 잘못되었습니다.'}, status=status.HTTP_401_UNAUTHORIZED)
