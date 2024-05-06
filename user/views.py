@@ -65,19 +65,32 @@ def signup(request: HttpRequest):
 @permission_classes([AllowAny])
 @csrf_exempt
 def user_login(request):
-    username = request.query_params.get('username')
-    password = request.query_params.get('password')
+    username = request.data.get('username')
+    password = request.data.get('password')
 
-    try:
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            auth_login(request, user)
-            return Response({'message': '로그인 성공'}, status=status.HTTP_200_OK)
-        else:
-            return Response({'error': '아이디 또는 비밀번호가 잘못되었습니다.'}, status=status.HTTP_401_UNAUTHORIZED)
+    if username is None or password is None:
+        return Response({'error': '아이디 또는 비밀번호가 필요합니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    user = authenticate(request, username=username, password=password)
+    if user is not None:
+        auth_login(request, user)
+        return Response({'message': '로그인 성공'}, status=status.HTTP_200_OK)
+    else:
+        return Response({'error': '아이디 또는 비밀번호가 잘못되었습니다.'}, status=status.HTTP_401_UNAUTHORIZED)
+# def user_login(request):
+#     username = request.query_params.get('username')
+#     password = request.query_params.get('password')
+#
+#     try:
+#         user = authenticate(request, username=username, password=password)
+#         if user is not None:
+#             auth_login(request, user)
+#             return Response({'message': '로그인 성공'}, status=status.HTTP_200_OK)
+#         else:
+#             return Response({'error': '아이디 또는 비밀번호가 잘못되었습니다.'}, status=status.HTTP_401_UNAUTHORIZED)
+#
+#     except Exception as e:
+#         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @swagger_auto_schema(method='post')
 @csrf_exempt
