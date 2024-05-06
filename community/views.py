@@ -237,7 +237,7 @@ def report(request):
             voice_phishing_record_id=voice_phishing_record_id
         )
 
-        return Response({'message': '성공적으로 신고되었습니다.'}, status=status.HTTP_201_CREATED)
+        return Response({'message': '성공적으로 신고되었습니다.','유저 닉네임': user_nickname}, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -312,7 +312,7 @@ def create_ask(request):
         # Create a new Post object
         post =Ask.objects.create(title=title, content=content, writer=user)
 
-        return Response({'message': '성공적으로 문의되었습니다.'}, status=status.HTTP_201_CREATED)
+        return Response({'message': '성공적으로 문의되었습니다.','유저 닉네임': user_nickname}, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -341,7 +341,7 @@ def update_ask(request, post_id):
         serializer.save()
         user = request.user
         user_nickname = user.nickname
-        return Response({'message': '게시물이 성공적으로 수정되었습니다.'}, status=status.HTTP_200_OK)
+        return Response({'message': '게시물이 성공적으로 수정되었습니다.','유저 닉네임': user_nickname}, status=status.HTTP_200_OK)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
