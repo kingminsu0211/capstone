@@ -15,6 +15,6 @@ urlpatterns = [
     path('signup/', signup, name='signup'),
     path('login/', user_login, name='login'),
     path('logout/', user_logout, name='logout'),
-    path('currnet/', current_user, name='current-user'),
+    path('current/', current_user, name='current-user'),
     # path('api-auth/', include('rest_framework.urls')),
 ]

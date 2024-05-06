@@ -12,6 +12,7 @@ from rest_framework.generics import ListAPIView
 from rest_framework import filters
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.contrib.auth.decorators import login_required
 
 
 def is_admin(user):
@@ -209,6 +210,7 @@ class AllReportListView(generics.ListAPIView):
         return Report.objects.all()
 
 #신고하기
+@login_required
 @swagger_auto_schema(
     method='post',
     request_body=ReportSerializer,
@@ -289,6 +291,7 @@ class ReportDetailView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 #문의하기 작성
+@login_required
 @swagger_auto_schema(
     method='post',
     request_body=AskSerializer,

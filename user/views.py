@@ -63,7 +63,7 @@ def signup(request: HttpRequest):
 ])
 @api_view(['POST'])
 @permission_classes([AllowAny])
-# @csrf_exempt
+@csrf_exempt
 def user_login(request):
     username = request.query_params.get('username')
     password = request.query_params.get('password')
@@ -80,6 +80,7 @@ def user_login(request):
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @swagger_auto_schema(method='post')
+@csrf_exempt
 @api_view(['POST'])
 def user_logout(request):
     logout(request._request)  # request._request 사용
