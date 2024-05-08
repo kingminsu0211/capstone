@@ -18,6 +18,11 @@ class AccountsSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = ('username','password','last_name','first_name','nickname','number')
 
+class LoginSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ('username','password')
+
 class SignupSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,

@@ -57,10 +57,7 @@ def signup(request: HttpRequest):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # 로그인 API 문서화
-@swagger_auto_schema(method='post', manual_parameters=[
-    openapi.Parameter('username', openapi.IN_QUERY, description="사용자 ID", type=openapi.TYPE_STRING),
-    openapi.Parameter('password', openapi.IN_QUERY, description="비밀번호", type=openapi.TYPE_STRING),
-])
+@swagger_auto_schema(method='post',request_body=LoginSerializer)
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @csrf_exempt
