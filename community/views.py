@@ -96,9 +96,7 @@ def create_post(request):
         user_nickname = user.nickname
 
         # Create a new Post object
-        post =Post.objects.create(title=title, content=content,
-                                  writer=user,
-                                  report_number=report_number)
+        post =Post.objects.create(title=title, content=content, writer=user, report_number=report_number)
 
         return Response({'message': '게시물이 성공적으로 작성되었습니다.','유저 닉네임': user_nickname}, status=status.HTTP_201_CREATED)
 
@@ -240,16 +238,21 @@ def report(request):
         user = request.user
         user_nickname = user.nickname if user.is_authenticated else "Anonymous"
 
-        # 새로운 댓글 객체를 생성합니다
-        report = Report.objects.create(
-            report_number= report_number,
-            report_type=report_type,
-            report_content=report_content,
-            reporter = user,
-            voice_phishing_record_id=voice_phishing_record_id
-        )
+        if isinstance(user, CustomUser):
+            # 인증된 사용자인 경우에만 보고서를 작성합니다
+            report = Report.objects.create(
+                report_number=report_number,
+                report_type=report_type,
+                report_content=report_content,
+                reporter=user,
+                voice_phishing_record_id=voice_phishing_record_id
+            )
 
-        return Response({'message': '성공적으로 신고되었습니다.','유저 닉네임': user_nickname}, status=status.HTTP_201_CREATED)
+            return Response({'message': '성공적으로 신고되었습니다.', '유저 닉네임': user_nickname}, status=status.HTTP_201_CREATED)
+        else:
+            # 인증되지 않은 사용자가 접근할 경우 오류를 반환합니다
+            return Response({'detail': 'Authentication credentials were not provided.'},
+                            status=status.HTTP_403_FORBIDDEN)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
