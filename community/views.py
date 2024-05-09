@@ -225,6 +225,7 @@ class AllReportListView(generics.ListAPIView):
 )
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@csrf_exempt
 @api_view(['POST'])
 def report(request):
     serializer = ReportSerializer(data=request.data)
@@ -237,7 +238,7 @@ def report(request):
         voice_phishing_record_id = serializer.validated_data.get('voice_phishing_record.id')
 
         user = request.user
-        user_nickname = user.nickname
+        user_nickname = user.nickname if user.is_authenticated else "Anonymous"
 
         # 새로운 댓글 객체를 생성합니다
         report = Report.objects.create(
@@ -300,15 +301,14 @@ class ReportDetailView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 #문의하기 작성
-
 @swagger_auto_schema(
     method='post',
     request_body=AskSerializer,
     operation_description="문의하기 작성"
 )
-# @login_required
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
+@csrf_exempt
 @api_view(['POST'])
 def create_ask(request):
     serializer = AskSerializer(data=request.data)
@@ -317,19 +317,14 @@ def create_ask(request):
         title = serializer.validated_data.get('title')
         content = serializer.validated_data.get('content')
 
-        # # Ensure that the user is a CustomUser instance
-        # if not isinstance(request.user, CustomUser):
-        #     return Response({'error': '사용자가 올바른 유형이 아닙니다.'}, status=status.HTTP_400_BAD_REQUEST)
-
         user = request.user
-        user_nickname = user.nickname
+        user_nickname = user.nickname if user.is_authenticated else "Anonymous"
 
-        # Create a new Post object
-        post =Ask.objects.create(title=title, content=content, writer=user)
-
-        return Response({'message': '성공적으로 문의되었습니다.'
-                            ,'유저 닉네임': user_nickname
-                         }, status=status.HTTP_201_CREATED)
+        if isinstance(user, CustomUser):
+            ask = Ask.objects.create(title=title, content=content, writer=user)
+            return Response({'message': '성공적으로 문의되었습니다.', '유저 닉네임': user_nickname}, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'detail': 'Authentication credentials were not provided.'}, status=status.HTTP_403_FORBIDDEN)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
