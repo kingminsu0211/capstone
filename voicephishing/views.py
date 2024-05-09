@@ -13,16 +13,12 @@ from numpy.linalg import norm
 import pickle
 import json
 import requests
-import urllib.parse
+import numpy as np
 import time
 
 
-class DiagnosisListView(generics.ListCreateAPIView):
-    queryset = Diagnosis.objects.all()
-    serializer_class = DiagnosisSerializer
-
 # 여기에는 JWT 토큰을 설정합니다.
-YOUR_JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYSI6dHJ1ZSwiZXhwIjoxNzE1MDE0NjUxLCJmdWUiOmZhbHNlLCJoYmkiOmZhbHNlLCJpYXQiOjE3MTQ5OTMwNTEsImp0aSI6Im9SYmFXbkJfdC05NEZjTFJLVGdnIiwicGxhbiI6ImJhc2ljIiwic2NvcGUiOiJzcGVlY2giLCJzdWIiOiJEd3hCNVk3azIyMHFUVjllUXBkbiIsInVjIjpmYWxzZSwidiI6MX0.O-3Rijy-X4pR0th3pSm7Thas1FezmXlr81_Y0AYXLz0'
+YOUR_JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYSI6dHJ1ZSwiZXhwIjoxNzE1MjkxOTQ1LCJmdWUiOmZhbHNlLCJoYmkiOmZhbHNlLCJpYXQiOjE3MTUyNzAzNDUsImp0aSI6IkU4aXpNSGhrNmhaUUNROG5raGp1IiwicGxhbiI6ImJhc2ljIiwic2NvcGUiOiJzcGVlY2giLCJzdWIiOiJEd3hCNVk3azIyMHFUVjllUXBkbiIsInVjIjpmYWxzZSwidiI6MX0.uJaooUvz5Nnk47-pGN9cyLnUD9pBGTISYmTY9fHSntk'
 
 
 glove = Glove.load('glove.model')
@@ -102,41 +98,85 @@ def to_vec(tokenized_data):
 
 # 입력 문서 평균 벡터 구하기 함수
 def get_document_vec(word_vec_list):
-    input_vec = None
-    if word_vec_list is not None:
-        for word_vec in word_vec_list:
-            if input_vec is None:
-                input_vec = word_vec[1]
-            else:
-                input_vec = input_vec + word_vec[1]
-
-    if input_vec is not None:
-        input_vec = input_vec / len(word_vec_list)
-
+    input_vec = np.zeros_like(word_vec_list[0][1])
+    for word_vec in word_vec_list:
+        input_vec += word_vec[1]
+    input_vec /= len(word_vec_list)
     return input_vec
 
 # 코사인 유사도 함수
 def cos_sim(A, B):
-  return dot(A, B)/(norm(A)*norm(B))
+    similarity = dot(A, B) / (norm(A) * norm(B))
+    return similarity
 
+#코사인 유사도 구해서 높은 순서대로 단어와 유사도 출력 -> 단일 문서와 비교 버전
+def s_cos_word_doc(word_vec_list, doc_vec):
+  answer = []
+  for word_vec in word_vec_list:
+    answer.append([word_vec[0], cos_sim(doc_vec, word_vec[1])])
+  answer = sorted(answer, key = lambda x: x[1], reverse = True)
+  return answer
+#10위까지 겹치는 단어 없이 (단어, 유사도) 출력
+
+def get_sim_top10(answer, cnt, compare_doc_cnt):
+  answerList = []
+  num = 0
+  i = -1
+  while num < 10:
+    i += 1
+    if i >= cnt: break;
+    answer[i][1] /= compare_doc_cnt
+    if answer[i] in answerList:
+      continue
+    answerList.append(answer[i])
+    num += 1;
+  return answerList
+
+#코사인 유사도 구해서 높은 순서대로 단어와 유사도 출력 -> 복수 문서와 비교 버전
+def m_cos_word_doc(word_vec_list, doc_vec_list):
+  answer = []
+  is_first = 0
+  for doc_vec in doc_vec_list:
+    for num, word_vec in enumerate(word_vec_list):
+      if is_first == 0:
+        answer.append([word_vec[0], cos_sim(doc_vec, word_vec[1])])
+      else:
+        answer[num][1] += cos_sim(doc_vec, word_vec[1])
+    is_first = 1
+  answer = sorted(answer, key = lambda x: x[1], reverse = True)
+
+  return answer
+
+# 모델에 해당 기능을 추가하는 함수
 # 모델에 해당 기능을 추가하는 함수
 def diagnose_phishing(call_details):
     tokenized_data = preprocessing(call_details)
     word_vec_list = to_vec(tokenized_data)
     input_vec = get_document_vec(word_vec_list)
-
+    vec_cnt = len(word_vec_list)
     # 비교 문서 벡터 리스트 가져오기
     with open("phishing_vec_list.pkl","rb") as f:
         compare_vec_list = pickle.load(f)
 
     # 코사인 유사도 평균 구하기
     mean_sim = 0
-    for doc_vec in compare_vec_list:
-        doc_sim = cos_sim(input_vec, doc_vec)
-        mean_sim += doc_sim
+    if input_vec is not None:
+        for doc_vec in compare_vec_list:
+            doc_sim = cos_sim(input_vec, doc_vec)
+            mean_sim += doc_sim
+
     mean_sim /= len(compare_vec_list)
 
-    return mean_sim
+    # 보이스피싱 의심 여부 초기화
+    is_phishing = 0
+
+    # 코사인 유사도 평균이 0.7 이상이면 보이스피싱 의심 여부를 1로 설정
+    if mean_sim >= 0.7:
+        is_phishing = 1
+        words_sim = m_cos_word_doc(word_vec_list, compare_vec_list)
+        words_sim_top10 = get_sim_top10(words_sim, vec_cnt, len(compare_vec_list))
+    return is_phishing, mean_sim, words_sim_top10
+
 
 # 통화 진단하기 API에 대한 Swagger 문서
 @swagger_auto_schema(
@@ -168,10 +208,14 @@ def diagnose_voice(request):
             # '직접 통화 내용 입력하기'일 경우 audio_file 필드는 무시
             serializer.validated_data.pop('call_details', None)
             if call_details:
-                suspicion = diagnose_phishing(call_details)
+                suspicion, mean_sim,words_sim_top10 = diagnose_phishing(call_details)
                 if suspicion is not None:
-                    suspicion_percentage = round(suspicion * 100)
-                    return Response({'suspicion_percentage': f'{suspicion_percentage}%'}, status=status.HTTP_200_OK)
+                    suspicion_percentage = round(mean_sim * 100)
+                    # 평균 유사도가 0.7 이상인 경우 의심 단어 반환
+                    if suspicion >= 0.7:
+                        response_data = {'suspicion_percentage': f'{suspicion_percentage}%','보이스피싱 의심 여부': '보이스피싱이 의심됨'}
+                        response_data['보이스피싱 의심 상위 10단어'] = [word[0] for word in words_sim_top10]
+                    return Response(response_data, status=status.HTTP_200_OK)
                 else:
                     return Response({'message': '진단 결과를 얻을 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
             else:
@@ -185,35 +229,22 @@ def diagnose_voice(request):
             if audio_file:
                 call_details = audio_to_text(audio_file)
             else:
-                # audio_file이 제공되지 않은 경우, URL로부터 텍스트 가져오기
-                url = 'http://127.0.0.1:8000/voice/'
-                headers = {
-                    'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36 Edg/123.0.0.0'}
-                try:
-                    response = requests.get(url, headers=headers)
-                    response.raise_for_status()
-                    call_details = response.text
-                except Exception as e:
-                    print(f"Error fetching text from URL: {e}")
-                    return Response({'message': '텍스트를 가져올 수 없습니다.'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                return Response({'message': '오디오 파일이 제공되지 않았습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
             if call_details:
-                suspicion = diagnose_phishing(call_details)
+                suspicion, mean_sim, words_sim_top10 = diagnose_phishing(call_details)
                 if suspicion is not None:
-                    suspicion_percentage = round(suspicion * 100)
-                    return Response(
-                        {'suspicion_percentage': f'{suspicion_percentage}%', 'call_details': call_details},
-                        status=status.HTTP_200_OK)
+                    suspicion_percentage = round(mean_sim * 100)
+                    # 평균 유사도가 0.7 이상인 경우 의심 단어 반환
+                    if suspicion >= 0.7:
+                        response_data = {'suspicion_percentage': f'{suspicion_percentage}%',
+                                         '보이스피싱 의심 여부': '보이스피싱이 의심됨'}
+                        response_data['보이스피싱 의심 상위 10단어'] = [word[0] for word in words_sim_top10]
+                    return Response(response_data, status=status.HTTP_200_OK)
                 else:
                     return Response({'message': '진단 결과를 얻을 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({'message': '오디오 파일이나 URL로부터 텍스트를 가져올 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
-        serializer.save()
-
-        if diagnosis_type == '직접 통화 내용 입력하기':
-            return Response({'message': '성공적으로 입력되었습니다.', 'data': serializer.data}, status=status.HTTP_201_CREATED)
-        elif diagnosis_type == '통화 녹음본으로 입력하기':
-            return Response({'message': '성공적으로 업로드되었습니다.', 'data': serializer.data},
-                            status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
