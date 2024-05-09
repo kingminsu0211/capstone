@@ -6,13 +6,11 @@ from rest_framework import urls
 
 router = routers.DefaultRouter()
 
-router.register(r'check', views.CheckAccountViewset)
-
-
 urlpatterns = [
     path('',include(router.urls)),
     path('first/', include('first.urls')),
     path('signup/', signup, name='signup'),
+    # path('signup/', views.SignupView.as_view(), name='signup'),
     path('login/', user_login, name='login'),
     path('logout/', user_logout, name='logout'),
     path('current/', current_user, name='current-user'),

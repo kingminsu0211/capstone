@@ -13,10 +13,12 @@ from .models import *
 from django.contrib.auth.password_validation import validate_password
 
 
-class AccountsSerializer(serializers.ModelSerializer):
+class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ('username','password','last_name','first_name','nickname','number')
+        fields = ('username',
+                  #'password',
+                  'last_name','first_name','nickname','number')
 
 class LoginSerializer(serializers.ModelSerializer):
     class Meta:

@@ -21,9 +21,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
 from django.views.decorators.csrf import csrf_exempt
 
-class CheckAccountViewset(viewsets.ModelViewSet):
-    queryset = CustomUser.objects.all()
-    serializer_class = AccountsSerializer
 
 # 회원가입 API 문서화
 @swagger_auto_schema(method='post', request_body=SignupSerializer)
@@ -34,27 +31,51 @@ class CheckAccountViewset(viewsets.ModelViewSet):
 @api_view(['POST'])
 def signup(request: HttpRequest):
     serializer = SignupSerializer(data=request.data)
-    print("Request Data:", request.data)
     if serializer.is_valid():
         username = serializer.validated_data['username']
         password = serializer.validated_data['password']
-        last_name=serializer.validated_data['last_name']
-        first_name=serializer.validated_data['first_name']
+        last_name = serializer.validated_data['last_name']
+        first_name = serializer.validated_data['first_name']
         nickname = serializer.validated_data['nickname']
         number = serializer.validated_data['number']
 
+        if not (username and password and nickname and number and last_name and first_name):
+            return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
+
         try:
             # Create a new user
-            user = CustomUser.objects.create_user(username=username, password=password,last_name=last_name,first_name=first_name,nickname=nickname,number=number)
+            user = CustomUser.objects.create_user(username=username, password=password, last_name=last_name, first_name=first_name, nickname=nickname, number=number)
         except ValidationError as e:
             return Response({'error': e.message}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Log in the user
-        # login(request, user)
-
-        return Response({'message': '회원가입이 완료되었습니다.'}, status=status.HTTP_201_CREATED)
+        # Create a token for the user
+        token = Token.objects.create(user=user)
+        return Response({"Token": token.key, 'message': '회원가입이 완료되었습니다.'}, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# def signup(request: HttpRequest):
+#     serializer = SignupSerializer(data=request.data)
+#     print("Request Data:", request.data)
+#     if serializer.is_valid():
+#         username = serializer.validated_data['username']
+#         password = serializer.validated_data['password']
+#         last_name=serializer.validated_data['last_name']
+#         first_name=serializer.validated_data['first_name']
+#         nickname = serializer.validated_data['nickname']
+#         number = serializer.validated_data['number']
+#
+#         try:
+#             # Create a new user
+#             user = CustomUser.objects.create_user(username=username, password=password,last_name=last_name,first_name=first_name,nickname=nickname,number=number)
+#         except ValidationError as e:
+#             return Response({'error': e.message}, status=status.HTTP_400_BAD_REQUEST)
+#
+#         # Log in the user
+#         # login(request, user)
+#
+#         return Response({'message': '회원가입이 완료되었습니다.'}, status=status.HTTP_201_CREATED)
+#
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # 로그인 API 문서화
 @swagger_auto_schema(method='post',request_body=LoginSerializer)
@@ -71,7 +92,10 @@ def user_login(request):
     user = authenticate(request, username=username, password=password)
     if user is not None:
         auth_login(request, user)
-        return Response({'message': '로그인 성공'}, status=status.HTTP_200_OK)
+        # Create or get a token for the user
+        token, created = Token.objects.get_or_create(user=user)
+        serializer = CustomUserSerializer(user)
+        return Response({'message': '로그인 성공','username':username,'token': token.key}, status=status.HTTP_200_OK)
     else:
         return Response({'error': '아이디 또는 비밀번호가 잘못되었습니다.'}, status=status.HTTP_401_UNAUTHORIZED)
 # def user_login(request):
@@ -100,10 +124,7 @@ def user_logout(request):
 # 현재 사용자 정보 API 문서화
 @swagger_auto_schema(method='get')
 @api_view(['GET'])
-@login_required  # 로그인이 필요한 경우에만 접근 가능하도록 하는 데코레이터
+@permission_classes([IsAuthenticated])  # 토큰 인증을 사용하여 로그인이 필요한 경우에만 접근 가능하도록 하는 데코레이터
 def current_user(request):
-    if request.user.is_authenticated:
-        user = request.user
-        return Response({'username': user.username, 'email': user.email}, status=status.HTTP_200_OK)
-    else:
-        return Response({'message': '로그인이 필요합니다.'}, status=status.HTTP_401_UNAUTHORIZED)
+    user = request.user
+    return Response({'username': user.username, 'email': user.email}, status=status.HTTP_200_OK)

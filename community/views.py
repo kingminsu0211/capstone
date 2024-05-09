@@ -13,7 +13,11 @@ from rest_framework import filters
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from django.contrib.auth.decorators import login_required
-
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.decorators import authentication_classes
 
 def is_admin(user):
     return user.is_staff and user.is_superuser
@@ -76,7 +80,9 @@ class PostDetailView(APIView):
     operation_description="게시글 쓰기"
 )
 @api_view(['POST'])
-# @login_required
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+@csrf_exempt
 def create_post(request):
     serializer = PostSerializer(data=request.data)
 
@@ -86,9 +92,9 @@ def create_post(request):
         content = serializer.validated_data.get('content')
         report_number = serializer.validated_data.get('report_number')
 
-        # You can access the authenticated user using request.user
         user = request.user
         user_nickname = user.nickname
+
         # Create a new Post object
         post =Post.objects.create(title=title, content=content,
                                   writer=user,
@@ -140,6 +146,7 @@ class MyCommentListView(generics.ListAPIView):
     request_body=CommentSerializer,
     operation_description="댓글 쓰기"
 )
+@csrf_exempt
 @api_view(['POST'])
 def comment_write(request, post_id):
     post = get_object_or_404(Post, id=post_id)
@@ -210,12 +217,14 @@ class AllReportListView(generics.ListAPIView):
         return Report.objects.all()
 
 #신고하기
-@login_required
+# @login_required
 @swagger_auto_schema(
     method='post',
     request_body=ReportSerializer,
     operation_description="신고하기"
 )
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def report(request):
     serializer = ReportSerializer(data=request.data)
@@ -291,12 +300,15 @@ class ReportDetailView(APIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 #문의하기 작성
-@login_required
+
 @swagger_auto_schema(
     method='post',
     request_body=AskSerializer,
     operation_description="문의하기 작성"
 )
+# @login_required
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def create_ask(request):
     serializer = AskSerializer(data=request.data)
@@ -315,7 +327,9 @@ def create_ask(request):
         # Create a new Post object
         post =Ask.objects.create(title=title, content=content, writer=user)
 
-        return Response({'message': '성공적으로 문의되었습니다.','유저 닉네임': user_nickname}, status=status.HTTP_201_CREATED)
+        return Response({'message': '성공적으로 문의되었습니다.'
+                            ,'유저 닉네임': user_nickname
+                         }, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
