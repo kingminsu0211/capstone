@@ -7,7 +7,7 @@ class PostSerializer(serializers.ModelSerializer):
         return obj.user.nickname
     class Meta:
         model = Post
-        fields = ['title', 'content', 'created_at', 'updated_at', 'report_number','writer']
+        fields = '__all__'
 
 class CommentSerializer(serializers.ModelSerializer):
     def get_user_nickname(self, obj):
@@ -22,7 +22,7 @@ class ReportSerializer(serializers.ModelSerializer):
         return obj.user.nickname
     class Meta:
         model = Report
-        fields = ['report_number','report_type', 'report_content', 'report_date','reporter','voice_phishing_record']
+        fields = '__all__'
 
 class AskSerializer(serializers.ModelSerializer):
     class Meta:
