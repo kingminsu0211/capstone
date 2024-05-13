@@ -18,10 +18,10 @@ import time
 
 
 # 여기에는 JWT 토큰을 설정합니다.
-YOUR_JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYSI6dHJ1ZSwiZXhwIjoxNzE1MzY3MTU2LCJmdWUiOmZhbHNlLCJoYmkiOmZhbHNlLCJpYXQiOjE3MTUzNDU1NTYsImp0aSI6Ik5wZVRIN2ZwZjRUb0JGMkZIREQ3IiwicGxhbiI6ImJhc2ljIiwic2NvcGUiOiJzcGVlY2giLCJzdWIiOiJEd3hCNVk3azIyMHFUVjllUXBkbiIsInVjIjpmYWxzZSwidiI6MX0.PrJu6k4IjTU8nfxo6iJ0Xw_5VOHkrUE_ZIfgA1cQzbY'
+YOUR_JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkYSI6dHJ1ZSwiZXhwIjoxNzE1NjIxNjg0LCJmdWUiOmZhbHNlLCJoYmkiOmZhbHNlLCJpYXQiOjE3MTU2MDAwODQsImp0aSI6InJMVVdOcDhjRWVlcWp4R1BvRGFWIiwicGxhbiI6ImJhc2ljIiwic2NvcGUiOiJzcGVlY2giLCJzdWIiOiJEd3hCNVk3azIyMHFUVjllUXBkbiIsInVjIjpmYWxzZSwidiI6MX0.LdCpl4BHMRQwFXpmuZ1u58QqRhJEXsFBLcSW3U3Z_kY'
 
 
-glove = Glove.load('glove.model')
+glove = Glove.load('glove.model2')
 
 okt = Okt()
 
@@ -155,7 +155,7 @@ def diagnose_phishing(call_details):
     input_vec = get_document_vec(word_vec_list)
     vec_cnt = len(word_vec_list)
     # 비교 문서 벡터 리스트 가져오기
-    with open("phishing_vec_list.pkl","rb") as f:
+    with open("phishing_vec_list2.pkl","rb") as f:
         compare_vec_list = pickle.load(f)
 
     # 코사인 유사도 평균 구하기

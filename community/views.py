@@ -160,6 +160,7 @@ def comment_write(request, post_id):
         # user = get_object_or_404(CustomUser, id=user_id.id)
         user = request.user
         user_nickname = user.nickname
+        # post = get_object_or_404(Ask, id=post_id)
         # 새로운 댓글 객체를 생성합니다
         comment = Comment.objects.create(
             content=content,
