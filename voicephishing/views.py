@@ -194,7 +194,6 @@ def diagnose_phishing(call_details):
     ),
     responses={200: '성공적으로 진단됨', 400: '잘못된 요청'},
 )
-# 통화 진단하기
 @api_view(['POST'])
 def diagnose_voice(request):
     serializer = DiagnosisSerializer(data=request.data)
@@ -208,14 +207,16 @@ def diagnose_voice(request):
             # '직접 통화 내용 입력하기'일 경우 audio_file 필드는 무시
             serializer.validated_data.pop('call_details', None)
             if call_details:
-                suspicion, mean_sim,words_sim_top10 = diagnose_phishing(call_details)
+                suspicion, mean_sim, words_sim_top10 = diagnose_phishing(call_details)
                 if suspicion is not None:
                     suspicion_percentage = round(mean_sim * 100)
                     # 평균 유사도가 0.7 이상인 경우 의심 단어 반환
                     if suspicion >= 0.7:
                         response_data = {'suspicion_percentage': f'{suspicion_percentage}%','보이스피싱 의심 여부': '보이스피싱이 의심됨'}
                         response_data['보이스피싱 의심 상위 10단어'] = [word[0] for word in words_sim_top10]
-                    return Response(response_data, status=status.HTTP_200_OK)
+                        return Response(response_data, status=status.HTTP_200_OK)
+                    else:
+                        return Response({'message': '평균 유사도가 0.7 이상이 아닙니다.'}, status=status.HTTP_400_BAD_REQUEST)
                 else:
                     return Response({'message': '진단 결과를 얻을 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
             else:
@@ -240,11 +241,71 @@ def diagnose_voice(request):
                         response_data = {'suspicion_percentage': f'{suspicion_percentage}%',
                                          '보이스피싱 의심 여부': '보이스피싱이 의심됨'}
                         response_data['보이스피싱 의심 상위 10단어'] = [word[0] for word in words_sim_top10]
-                    return Response(response_data, status=status.HTTP_200_OK)
+                        return Response(response_data, status=status.HTTP_200_OK)
+                    else:
+                        return Response({'message': '평균 유사도가 0.7 이상이 아닙니다.'}, status=status.HTTP_400_BAD_REQUEST)
                 else:
                     return Response({'message': '진단 결과를 얻을 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
             else:
                 return Response({'message': '오디오 파일이나 URL로부터 텍스트를 가져올 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # 어떤 경우에도 해당하지 않을 때
+        else:
+            return Response({'message': '잘못된 진단 타입입니다.'}, status=status.HTTP_400_BAD_REQUEST)
+
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+# 통화 진단하기
+# @api_view(['POST'])
+# def diagnose_voice(request):
+#     serializer = DiagnosisSerializer(data=request.data)
+#     if serializer.is_valid():
+#         diagnosis_type = serializer.validated_data.get('diagnosis_type')
+#         call_details = serializer.validated_data.get('call_details')
+#         audio_file = serializer.validated_data.get('audio_file')
+#         suspicion_percentage = serializer.validated_data.get('suspicion_percentage')
+#
+#         if diagnosis_type == '직접 통화 내용 입력하기':
+#             # '직접 통화 내용 입력하기'일 경우 audio_file 필드는 무시
+#             serializer.validated_data.pop('call_details', None)
+#             if call_details:
+#                 suspicion, mean_sim,words_sim_top10 = diagnose_phishing(call_details)
+#                 if suspicion is not None:
+#                     suspicion_percentage = round(mean_sim * 100)
+#                     # 평균 유사도가 0.7 이상인 경우 의심 단어 반환
+#                     if suspicion >= 0.7:
+#                         response_data = {'suspicion_percentage': f'{suspicion_percentage}%','보이스피싱 의심 여부': '보이스피싱이 의심됨'}
+#                         response_data['보이스피싱 의심 상위 10단어'] = [word[0] for word in words_sim_top10]
+#                     return Response(response_data, status=status.HTTP_200_OK)
+#                 else:
+#                     return Response({'message': '진단 결과를 얻을 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+#             else:
+#                 return Response({'message': '통화 내용이 제공되지 않았습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+#
+#         # 통화 녹음본으로 입력하기
+#         elif diagnosis_type == '통화 녹음본으로 입력하기':
+#             # '통화 녹음본으로 입력하기'일 경우 call_details 필드는 무시
+#             serializer.validated_data.pop('audio_file', None)
+#             # 오디오 파일을 텍스트로 변환
+#             if audio_file:
+#                 call_details = audio_to_text(audio_file)
+#             else:
+#                 return Response({'message': '오디오 파일이 제공되지 않았습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+#
+#             if call_details:
+#                 suspicion, mean_sim, words_sim_top10 = diagnose_phishing(call_details)
+#                 if suspicion is not None:
+#                     suspicion_percentage = round(mean_sim * 100)
+#                     # 평균 유사도가 0.7 이상인 경우 의심 단어 반환
+#                     if suspicion >= 0.7:
+#                         response_data = {'suspicion_percentage': f'{suspicion_percentage}%',
+#                                          '보이스피싱 의심 여부': '보이스피싱이 의심됨'}
+#                         response_data['보이스피싱 의심 상위 10단어'] = [word[0] for word in words_sim_top10]
+#                     return Response(response_data, status=status.HTTP_200_OK)
+#                 else:
+#                     return Response({'message': '진단 결과를 얻을 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+#             else:
+#                 return Response({'message': '오디오 파일이나 URL로부터 텍스트를 가져올 수 없습니다.'}, status=status.HTTP_400_BAD_REQUEST)
+#
+#     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
