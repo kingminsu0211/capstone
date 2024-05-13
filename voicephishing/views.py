@@ -148,12 +148,12 @@ def m_cos_word_doc(word_vec_list, doc_vec_list):
   return answer
 
 # 모델에 해당 기능을 추가하는 함수
-# 모델에 해당 기능을 추가하는 함수
 def diagnose_phishing(call_details):
     tokenized_data = preprocessing(call_details)
     word_vec_list = to_vec(tokenized_data)
     input_vec = get_document_vec(word_vec_list)
     vec_cnt = len(word_vec_list)
+    words_sim_top10 = []
     # 비교 문서 벡터 리스트 가져오기
     with open("phishing_vec_list2.pkl","rb") as f:
         compare_vec_list = pickle.load(f)
