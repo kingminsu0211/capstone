@@ -16,7 +16,8 @@ class CommentSerializer(serializers.ModelSerializer):
     user_nickname = serializers.CharField(source='user.nickname', read_only=True)
     class Meta:
         model = Comment
-        fields = ['id', 'content', 'created_at', 'user', 'user_nickname']
+        fields = ['id', 'content', 'created_at', 'user', 'user_nickname','post']
+        read_only_fields = ['post']
 
 class ReportSerializer(serializers.ModelSerializer):
     user_nickname = serializers.CharField(source='reporter.nickname', read_only=True)
@@ -38,5 +39,5 @@ class AskCommentSerializer(serializers.ModelSerializer):
     #     return obj.user.nickname
     class Meta:
         model = AskComment
-        fields = ['id', 'content', 'created_at', 'user', 'user_nickname']
-        # read_only_fields = ['post','user_nickname']
+        fields = ['id', 'content', 'created_at', 'user', 'user_nickname', 'post']
+        read_only_fields = ['post']
