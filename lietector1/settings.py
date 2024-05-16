@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'community',
     'drf_yasg',
     'chatbot',
+    'django_mysql',
 
 ]
 
@@ -97,7 +98,11 @@ DATABASES = {
         'PASSWORD' : '1234',
         'HOST' : 'ec2-54-180-213-170.ap-northeast-2.compute.amazonaws.com',
         # 'HOST' : '127.0.0.1',
-        'PORT' : '3306'
+        'PORT' : '3306',
+        'CONN_MAX_AGE': 600,  # 연결을 10분 동안 재사용
+        'OPTIONS': {
+            'init_command': "SET sql_mode='STRICT_TRANS_TABLES'"
+        }
     }
 }
 
